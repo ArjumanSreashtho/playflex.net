@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', (p) => !p.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title={post.data.title} description={post.data.description}>
+  <article class="prose wrap narrow">
+    <p class="meta"><a href="/blog/">Blog</a> · {fmt(post.data.date)}</p>
+    <h1>{post.data.title}</h1>
+    <Content />
+    <AdSlot slot={import.meta.env.PUBLIC_AD_SLOT_POST} />
+  </article>
+</Base>

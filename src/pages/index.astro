@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { games } from '../games';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', (p) => !p.data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title="PlayFlex">
+  <div class="hero">
+    <div class="flakes"></div>
+    <div class="wrap">
+      <h1>Simple, safe games<br>for the whole family.</h1>
+      <p>PlayFlex is an independent studio from Bangladesh making mobile games for kids and teens: easy to start, fun to master, no tricks.</p>
+    </div>
+  </div>
+
+  <section id="games">
+    <div class="wrap">
+      <h2>Our games</h2>
+      <div class="grid">
+        {games.map((g) => (
+          <a class="card" href={`/${g.slug}/`} style={`border-top: 4px solid ${g.accent}; text-decoration:none; color:inherit`}>
+            <h3>{g.name}</h3>
+            <p>{g.tagline}</p>
+            <ul class="chips">{g.features.slice(0, 3).map((f) => <li>{f}</li>)}</ul>
+            <span class="more" style="color:var(--accent)">See the game →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><AdSlot slot={import.meta.env.PUBLIC_AD_SLOT_HOME} /></div>
+
+  {posts.length > 0 && (
+    <section>
+      <div class="wrap">
+        <h2>From the blog</h2>
+        <div class="grid">
+          {posts.map((p) => (
+            <a class="card" href={`/blog/${p.id}/`} style="text-decoration:none; color:inherit">
+              <p class="meta">{fmt(p.data.date)}</p>
+              <h3>{p.data.title}</h3>
+              <p>{p.data.description}</p>
+              <span class="more" style="color:var(--accent)">Read →</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</Base>

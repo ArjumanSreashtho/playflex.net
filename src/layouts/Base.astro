@@ -1,0 +1,55 @@
+---
+import '../styles/site.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ads?: boolean; // false on privacy pages: no ad script is loaded at all
+}
+const { title, description = 'PlayFlex makes simple, safe mobile games for kids, teens and families.', ads = true } = Astro.props;
+const adClient = import.meta.env.PUBLIC_ADSENSE_CLIENT;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const path = Astro.url.pathname;
+const fullTitle = title === 'PlayFlex' ? 'PlayFlex – games for kids and families' : `${title} – PlayFlex`;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{fullTitle}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:type" content="website">
+  <meta property="og:url" content={canonical}>
+  {ads && adClient && (
+    <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`} crossorigin="anonymous"></script>
+  )}
+</head>
+<body>
+  <header class="top">
+    <div class="wrap bar">
+      <a class="logo" href="/"><img src="/favicon.svg" alt="" width="28" height="28"> PlayFlex</a>
+      <nav aria-label="Main">
+        <a href="/#games" aria-current={path === '/' ? 'page' : undefined}>Games</a>
+        <a href="/blog/" aria-current={path.startsWith('/blog') ? 'page' : undefined}>Blog</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <slot />
+  </main>
+  <footer class="foot">
+    <div class="wrap">
+      <p><strong>PlayFlex</strong> · Independent games from Bangladesh</p>
+      <p>
+        <a href="mailto:contact@playflex.net">contact@playflex.net</a> ·
+        <a href="/frostspear/privacy/">FrostSpear privacy policy</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

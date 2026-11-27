@@ -1,0 +1,19 @@
+# systemd service: runs the site on 127.0.0.1:3000 and restarts it if it stops.
+# Install: see README "First-time setup". Edit User and WorkingDirectory if your user/folder differ.
+[Unit]
+Description=PlayFlex website (Astro, Node) on port 3000
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/playflex.net
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+ExecStart=/usr/bin/node ./dist/server/entry.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

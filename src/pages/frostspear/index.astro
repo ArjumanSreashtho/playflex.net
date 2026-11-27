@@ -1,0 +1,27 @@
+---
+import Base from '../../layouts/Base.astro';
+import { games } from '../../games';
+
+const g = games.find((x) => x.slug === 'frostspear')!;
+---
+<Base title={g.name} description={g.tagline}>
+  <div class="hero">
+    <div class="flakes"></div>
+    <div class="wrap">
+      <h1>{g.name}</h1>
+      <p>{g.tagline}</p>
+    </div>
+  </div>
+  <section>
+    <div class="wrap narrow">
+      <p>{g.about}</p>
+      <ul class="chips" style="margin: 20px 0">{g.features.map((f) => <li>{f}</li>)}</ul>
+      <p>
+        {g.playUrl
+          ? <a class="btn" href={g.playUrl}>Get it on Google Play</a>
+          : <span class="soon">Coming soon to Google Play</span>}
+      </p>
+      <p><a href="/frostspear/privacy/">Privacy policy</a></p>
+    </div>
+  </section>
+</Base>

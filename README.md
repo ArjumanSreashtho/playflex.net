@@ -1,98 +1,107 @@
 # playflex.net
 
-The PlayFlex website: a home page and one privacy policy per game.
+The PlayFlex website: game pages, privacy policies and a blog. Built with
+[Astro](https://astro.build) and served by Node on **port 3000** (nginx in front handles the domain and HTTPS).
 
 ```
-site/                      the website (plain HTML, no build step)
-  index.html               home page, lists the games
-  frostspear/privacy/      FrostSpear: Tundra Hunt privacy policy
-Caddyfile                  web server config (HTTPS is automatic)
-docker-compose.yml         runs Caddy in Docker
-deploy/open-ports.sh       opens ports 80/443 on the server
-deploy/update.sh           pulls the latest site and reloads
+src/games.ts                       the game list (name, tagline, features, Google Play link)
+src/pages/index.astro              home page
+src/pages/frostspear/index.astro   FrostSpear game page
+src/pages/frostspear/privacy.astro FrostSpear privacy policy   → /frostspear/privacy/
+src/content/blog/*.md              blog posts, one Markdown file each
+src/components/AdSlot.astro        ad space, off until you switch ads on
+deploy/playflex-site.service       systemd service (keeps the site running)
+deploy/update.sh                   pull, build and restart on the server
 ```
 
-Live URLs: `https://playflex.net/` and `https://playflex.net/frostspear/privacy/`
+## Run it locally
+
+```bash
+npm install
+npm run dev        # http://localhost:4321 with live reload
+npm run build      # build for production
+npm start          # serve the build on http://127.0.0.1:3000
+```
+
+## Write a blog post
+
+Add a file in `src/content/blog/`, e.g. `my-post.md` → `/blog/my-post/`:
+
+```markdown
+---
+title: "Post title"
+description: "One sentence shown in lists and search results."
+date: 2026-12-01
+game: frostspear      # optional
+draft: false          # true hides it
+---
+
+Your text in Markdown.
+```
+
+Push, then run `./deploy/update.sh` on the server.
 
 ## Add a new game
 
-Copy `site/frostspear/` to `site/<game>/`, edit `site/<game>/privacy/index.html`, add a card for it
-in `site/index.html` and a line in `site/sitemap.xml`. Push, then run `./deploy/update.sh` on the server.
+1. Add it to `src/games.ts`.
+2. Copy `src/pages/frostspear/` to `src/pages/<slug>/` and edit both pages.
+3. The privacy policy URL for Play Console is `https://playflex.net/<slug>/privacy/`.
+
+When a game is live, set its `playUrl` in `src/games.ts` to show a "Get it on Google Play" button.
+
+## Ads (later)
+
+Ads are off. To switch on Google AdSense once your account is approved, create a `.env` file on the
+server before building:
+
+```
+PUBLIC_ADSENSE_CLIENT=ca-pub-XXXXXXXXXXXXXXXX
+PUBLIC_AD_SLOT_HOME=1234567890
+PUBLIC_AD_SLOT_POST=1234567890
+```
+
+and add `public/ads.txt` with the line AdSense gives you. Ads show on the home page and blog posts
+only; privacy pages and the 404 page never load the ad script. FrostSpear is made for kids, so keep
+ads off its game pages and use AdSense's family-safe settings.
 
 ## First-time setup on the Oracle server
 
-### 1. Point the domain at the server (Cloudflare → playflex.net → DNS)
-
-* Delete the four GitHub `A @ 185.199.x.153` records, and any old `www` record.
-* Add `A`, name `@`, content = the server's public IP, **DNS only (grey cloud)**.
-* Add `CNAME`, name `www`, content `playflex.net`, **DNS only (grey cloud)**.
-* Leave the email records (MX, TXT) alone.
-
-### 2. Open ports 80 and 443 in Oracle Cloud
-
-Oracle Cloud console → **Networking → Virtual cloud networks → (your VCN) → Security Lists →
-Default Security List → Add Ingress Rules**:
-
-| Source CIDR | Protocol | Destination port |
-|---|---|---|
-| `0.0.0.0/0` | TCP | `80` |
-| `0.0.0.0/0` | TCP | `443` |
-| `0.0.0.0/0` | UDP | `443` |
-
-### 3. On the server
-
 ```bash
-# Docker (skip if `docker compose version` already works)
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER   # then log out and back in
+# Node 22 (skip if `node -v` already shows v22 or newer)
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
-git clone https://github.com/ArjumanSreashtho/playflex.net.git
-cd playflex.net
-chmod +x deploy/*.sh
-./deploy/open-ports.sh
-docker compose up -d
-docker compose logs -f web      # wait for "certificate obtained successfully", then Ctrl+C
+git clone https://github.com/ArjumanSreashtho/playflex.net.git ~/playflex.net
+cd ~/playflex.net
+npm ci && npm run build
+
+# keep it running (edit User/WorkingDirectory in the file first if you're not "ubuntu")
+sudo cp deploy/playflex-site.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now playflex-site
+curl -I http://127.0.0.1:3000/      # should say 200 OK
 ```
 
-Open `https://playflex.net/frostspear/privacy/`. The certificate renews by itself.
+nginx should forward the domain to it, for example:
 
-### 4. Turn off GitHub Pages
+```nginx
+server {
+    server_name playflex.net www.playflex.net;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
-In the GitHub repo → **Settings → Pages**, set Source to **None**, so GitHub stops trying to serve
-the domain.
+HTTPS: `sudo certbot --nginx -d playflex.net -d www.playflex.net`.
 
-## Updating the site
-
-Edit files under `site/`, push to GitHub, then on the server:
+## Update
 
 ```bash
 cd ~/playflex.net && ./deploy/update.sh
 ```
 
-## If ports 80/443 are already used on the server
-
-Only one program can own ports 80/443. If another site (for example a game server behind nginx or
-Caddy) already uses them, don't run this compose file; add playflex.net to that web server instead:
-
-* **Existing Caddy:** add the two `playflex.net` blocks from `Caddyfile` to it, with `root` pointing at
-  this repo's `site/` folder.
-* **Existing nginx:**
-
-  ```nginx
-  server {
-      server_name playflex.net www.playflex.net;
-      root /home/ubuntu/playflex.net/site;
-      index index.html;
-      error_page 404 /404.html;
-      location / { try_files $uri $uri/ =404; }
-  }
-  ```
-
-  then `sudo certbot --nginx -d playflex.net -d www.playflex.net` for HTTPS.
-
-## Troubleshooting
-
-* `docker compose logs web` shows the reason a certificate failed. Usually the DNS record is still
-  orange (proxied) or points elsewhere, or port 80 is closed in step 2 or 3.
-* Check DNS: `nslookup playflex.net` should print the server's IP.
-* Check ports from outside: `curl -I http://playflex.net` should answer with a redirect to https.
+Logs: `journalctl -u playflex-site -f`
