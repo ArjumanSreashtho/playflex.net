@@ -11,11 +11,16 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
-<Base title={post.data.title} description={post.data.description}>
-  <article class="prose wrap narrow">
-    <p class="meta"><a href="/blog/">Blog</a> · {fmt(post.data.date)}</p>
-    <h1>{post.data.title}</h1>
-    <Content />
-    <AdSlot slot={import.meta.env.PUBLIC_AD_SLOT_POST} />
+<Base title={post.data.title} description={post.data.description} ads={true}>
+  <article class="page container">
+    <header class="page-head">
+      <h1>{post.data.title}</h1>
+      <p class="meta"><time datetime={post.data.date.toISOString().slice(0, 10)}>{fmt(post.data.date)}</time></p>
+    </header>
+    <div class="prose">
+      <Content />
+      <AdSlot slot={import.meta.env.PUBLIC_AD_SLOT_POST} />
+      <p class="back"><a href="/blog/">Back to the blog</a></p>
+    </div>
   </article>
 </Base>

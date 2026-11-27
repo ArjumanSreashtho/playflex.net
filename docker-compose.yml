@@ -1,4 +1,4 @@
-# PlayFlex website on port 3000 (nginx on the server forwards playflex.net to it).
+# FrostSpear website on port 3000 (nginx on the server forwards frostspear.playflex.net to it).
 # Start / update:  docker compose up -d --build
 services:
   web:

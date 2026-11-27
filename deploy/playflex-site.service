@@ -1,7 +1,7 @@
 # systemd service: runs the site on 127.0.0.1:3000 and restarts it if it stops.
 # Install: see README "First-time setup". Edit User and WorkingDirectory if your user/folder differ.
 [Unit]
-Description=PlayFlex website (Astro, Node) on port 3000
+Description=FrostSpear website (Astro, Node) on port 3000
 After=network.target
 
 [Service]

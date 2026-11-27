@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "start": "HOST=127.0.0.1 PORT=3000 node ./dist/server/entry.mjs"
+    "start": "HOST=127.0.0.1 PORT=3000 node ./dist/server/entry.mjs",
+    "art": "node scripts/render-art.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.14",
     "@astrojs/sitemap": "^3.7.6",
+    "@fontsource-variable/archivo": "^5.3.0",
     "astro": "^7.4.13"
   },
   "engines": {

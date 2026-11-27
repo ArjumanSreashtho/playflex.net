@@ -6,22 +6,26 @@ const posts = (await getCollection('blog', (p) => !p.data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
-<Base title="Blog" description="News, updates and behind-the-scenes notes from PlayFlex.">
-  <section>
-    <div class="wrap narrow">
+<Base title="Blog" description="News, updates and notes from the making of FrostSpear: Tundra Hunt.">
+  <div class="page container">
+    <header class="page-head">
       <h1>Blog</h1>
-      <p class="meta" style="margin-bottom:24px">News, updates and behind-the-scenes notes from PlayFlex.</p>
-      <ul class="post-list">
+      <p class="meta">News, updates and notes from the making of FrostSpear.</p>
+    </header>
+    {posts.length > 0 ? (
+      <ul class="post-list" role="list">
         {posts.map((p) => (
           <li>
-            <a class="card" href={`/blog/${p.id}/`} style="text-decoration:none; color:inherit">
-              <p class="meta">{fmt(p.data.date)}</p>
-              <h3>{p.data.title}</h3>
+            <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
+            <div>
+              <h3><a href={`/blog/${p.id}/`}>{p.data.title}</a></h3>
               <p>{p.data.description}</p>
-            </a>
+            </div>
           </li>
         ))}
       </ul>
-    </div>
-  </section>
+    ) : (
+      <p>No posts yet. The first one is on its way.</p>
+    )}
+  </div>
 </Base>

@@ -1,16 +1,25 @@
 ---
+import '@fontsource-variable/archivo/wdth.css';
 import '../styles/site.css';
+import { game } from '../data/game';
 
 interface Props {
-  title: string;
+  title?: string;        // page title; the game name is added after it
   description?: string;
-  ads?: boolean; // false on privacy pages: no ad script is loaded at all
+  ads?: boolean;         // false: the ad script is never loaded on this page
 }
-const { title, description = 'PlayFlex makes simple, safe mobile games for kids, teens and families.', ads = true } = Astro.props;
-const adClient = import.meta.env.PUBLIC_ADSENSE_CLIENT;
+const {
+  title,
+  description = 'FrostSpear: Tundra Hunt is a tap-to-throw Ice Age hunting game for kids and teens: 200 levels, ten regions, no ads and nothing to buy.',
+  ads = false,
+} = Astro.props;
+const fullTitle = title ? `${title} – ${game.name}` : `${game.name} – an Ice Age hunting game`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const path = Astro.url.pathname;
-const fullTitle = title === 'PlayFlex' ? 'PlayFlex – games for kids and families' : `${title} – PlayFlex`;
+const ogImage = new URL('/img/og.jpg', Astro.site);
+const adClient = import.meta.env.PUBLIC_ADSENSE_CLIENT;
+const onHome = Astro.url.pathname === '/';
+const section = (id: string) => (onHome ? `#${id}` : `/#${id}`);
+const year = new Date().getFullYear();
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -20,35 +29,66 @@ const fullTitle = title === 'PlayFlex' ? 'PlayFlex – games for kids and famili
   <title>{fullTitle}</title>
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#0a1a42">
+  <link rel="icon" href="/img/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/img/icon-180.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content={game.name}>
   <meta property="og:title" content={fullTitle}>
   <meta property="og:description" content={description}>
-  <meta property="og:type" content="website">
   <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={ogImage}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <slot name="head" />
   {ads && adClient && (
     <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`} crossorigin="anonymous"></script>
   )}
 </head>
 <body>
-  <header class="top">
-    <div class="wrap bar">
-      <a class="logo" href="/"><img src="/favicon.svg" alt="" width="28" height="28"> PlayFlex</a>
-      <nav aria-label="Main">
-        <a href="/#games" aria-current={path === '/' ? 'page' : undefined}>Games</a>
-        <a href="/blog/" aria-current={path.startsWith('/blog') ? 'page' : undefined}>Blog</a>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container bar">
+      <a class="brand" href="/" aria-label={`${game.short} home`}>
+        <img src="/img/icon-96.webp" alt="" width="36" height="36">
+        <span>{game.short}</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a class="wide-only" href={section('beasts')}>Beasts</a>
+        <a class="wide-only" href={section('journey')}>Journey</a>
+        <a class="wide-only" href={section('parents')}>For parents</a>
+        <a href="/blog/" aria-current={Astro.url.pathname.startsWith('/blog') ? 'page' : undefined}>Blog</a>
+        <a class="btn btn-small wide-only" href={game.testMail}>Join the test</a>
       </nav>
     </div>
   </header>
-  <main>
+
+  <main id="main">
     <slot />
   </main>
-  <footer class="foot">
-    <div class="wrap">
-      <p><strong>PlayFlex</strong> · Independent games from Bangladesh</p>
-      <p>
-        <a href="mailto:contact@playflex.net">contact@playflex.net</a> ·
-        <a href="/frostspear/privacy/">FrostSpear privacy policy</a>
-      </p>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <img src="/img/icon-96.webp" alt="" width="48" height="48">
+        <p><strong>{game.name}</strong><br>A game by {game.studio}, made in Bangladesh.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href={section('beasts')}>Beasts</a></li>
+          <li><a href={section('journey')}>Journey</a></li>
+          <li><a href={section('parents')}>For parents</a></li>
+        </ul>
+        <ul>
+          <li><a href="/blog/">Blog</a></li>
+          <li><a href="/privacy/">Privacy policy</a></li>
+          <li><a href={`mailto:${game.email}`}>{game.email}</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="container footer-base">
+      <p>© {year} {game.studio}</p>
     </div>
   </footer>
 </body>

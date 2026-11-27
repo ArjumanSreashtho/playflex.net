@@ -1,7 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import AdSlot from '../components/AdSlot.astro';
-import { games } from '../games';
+import { game, beasts, regions, screens } from '../data/game';
 import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog', (p) => !p.data.draft))
@@ -9,47 +8,137 @@ const posts = (await getCollection('blog', (p) => !p.data.draft))
   .slice(0, 3);
 const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
-<Base title="PlayFlex">
-  <div class="hero">
-    <div class="flakes"></div>
-    <div class="wrap">
-      <h1>Simple, safe games<br>for the whole family.</h1>
-      <p>PlayFlex is an independent studio from Bangladesh making mobile games for kids and teens: easy to start, fun to master, no tricks.</p>
-    </div>
-  </div>
+<Base>
+  <link slot="head" rel="preload" as="image" href="/img/hero-1600.webp" imagesrcset="/img/hero-1600.webp 1600w, /img/hero-2560.webp 2560w" imagesizes="100vw" media="(min-width: 700px)">
 
-  <section id="games">
-    <div class="wrap">
-      <h2>Our games</h2>
-      <div class="grid">
-        {games.map((g) => (
-          <a class="card" href={`/${g.slug}/`} style={`border-top: 4px solid ${g.accent}; text-decoration:none; color:inherit`}>
-            <h3>{g.name}</h3>
-            <p>{g.tagline}</p>
-            <ul class="chips">{g.features.slice(0, 3).map((f) => <li>{f}</li>)}</ul>
-            <span class="more" style="color:var(--accent)">See the game →</span>
-          </a>
-        ))}
+  <section class="hero" aria-labelledby="hero-title">
+    <picture class="hero-art">
+      <source media="(min-width: 700px)" srcset="/img/hero-1600.webp 1600w, /img/hero-2560.webp 2560w" sizes="100vw" width="2560" height="1440">
+      <img src="/img/hero-mobile-1200.webp" srcset="/img/hero-mobile-800.webp 800w, /img/hero-mobile-1200.webp 1200w" sizes="100vw"
+           width="1200" height="900" fetchpriority="high"
+           alt="A hunter with a spear faces a woolly mammoth, a dire wolf, a cave hyena, a sabertooth and an eagle on the tundra at night">
+    </picture>
+    <div class="container hero-copy">
+      <h1 id="hero-title">Hunt the Ice&nbsp;Age.</h1>
+      <p class="lead">Throw your spear at dire wolves, sabertooths and woolly mammoths across 200 levels of frozen wilderness. A tap-to-throw game for kids and teens, with no ads and nothing to buy.</p>
+      <div class="actions">
+        {game.playUrl
+          ? <a class="btn" href={game.playUrl}>Get it on Google Play</a>
+          : <>
+              <a class="btn" href={game.testMail}>Join the closed test</a>
+              <span class="note">Coming soon to Google Play</span>
+            </>}
       </div>
     </div>
   </section>
 
-  <div class="wrap"><AdSlot slot={import.meta.env.PUBLIC_AD_SLOT_HOME} /></div>
+  <section class="section" id="play" aria-labelledby="play-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="play-title">Tap to throw</h2>
+        <p>Tap a beast and your spear flies at it. Every beast moves its own way, so the skill is in reading them: when to throw, and who to hit first.</p>
+      </div>
+      <ul class="screens" role="list">
+        {screens.map((s) => (
+          <li>
+            <figure>
+              <img src={`/img/screens/${s.id}.webp`} alt={s.alt} width="540" height="960" loading="lazy" decoding="async">
+              <figcaption>{s.caption}</figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section-rule" id="journey" aria-labelledby="journey-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="journey-title">Ten regions, 200 levels</h2>
+        <p>The journey runs from the Frozen Valley to the Frost Kingdom. Every tenth level is a boss fight, from the Old Mammoth to the Last Mammoth King, and a Golden Hunt follows each one.</p>
+      </div>
+      <ol class="journey">
+        {regions.map((r) => (
+          <li>
+            <img src={r.img} alt="" width="780" height="520" loading="lazy" decoding="async">
+            <div class="journey-text">
+              <h3>{r.name}</h3>
+              <p>Levels {r.from}–{r.to}</p>
+              <p class="bosses">Bosses: {r.bosses.join(' and ')}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section-rule" id="beasts" aria-labelledby="beasts-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="beasts-title">Know your beasts</h2>
+        <p>Each beast has a habit you can learn. Here they are in the order you meet them.</p>
+      </div>
+      <ol class="beasts">
+        {beasts.map((b) => (
+          <li>
+            <img src={`/img/beasts/${b.id}.webp`} alt="" loading="lazy" decoding="async">
+            <div>
+              <h3>{b.name}</h3>
+              <p class="first">First met on level {b.level}</p>
+              <p>{b.habit}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section dark" id="parents" aria-labelledby="parents-title">
+    <div class="container parents">
+      <div>
+        <h2 id="parents-title">Made for kids to play safely</h2>
+        <p>You can hand FrostSpear to a child and let them play. Here is what the game does not do.</p>
+      </div>
+      <dl class="facts">
+        <div><dt>No ads</dt><dd>No banners, no videos, nothing to tap by accident.</dd></div>
+        <div><dt>Nothing to buy</dt><dd>Spears and hoods are unlocked by playing, never by paying.</dd></div>
+        <div><dt>No accounts or chat</dt><dd>No sign-up, no messages and no links out of the game.</dd></div>
+        <div><dt>Plays offline</dt><dd>No internet connection needed, at home or on the road.</dd></div>
+        <div><dt>Collects no personal data</dt><dd>Progress is saved on the phone and nowhere else. <a href="/privacy/">Read the privacy policy</a>.</dd></div>
+      </dl>
+    </div>
+  </section>
 
   {posts.length > 0 && (
-    <section>
-      <div class="wrap">
-        <h2>From the blog</h2>
-        <div class="grid">
-          {posts.map((p) => (
-            <a class="card" href={`/blog/${p.id}/`} style="text-decoration:none; color:inherit">
-              <p class="meta">{fmt(p.data.date)}</p>
-              <h3>{p.data.title}</h3>
-              <p>{p.data.description}</p>
-              <span class="more" style="color:var(--accent)">Read →</span>
-            </a>
-          ))}
+    <section class="section" id="news" aria-labelledby="news-title">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="news-title">From the blog</h2>
+          <p><a href="/blog/">All posts</a></p>
         </div>
+        <ul class="post-list" role="list">
+          {posts.map((p) => (
+            <li>
+              <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
+              <div>
+                <h3><a href={`/blog/${p.id}/`}>{p.data.title}</a></h3>
+                <p>{p.data.description}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {!game.playUrl && (
+    <section class="section section-rule" id="test" aria-labelledby="test-title">
+      <div class="container test">
+        <div>
+          <h2 id="test-title">Play it before launch</h2>
+          <p>We're starting a closed test on Google Play. Email us the address you use for Google Play and we'll add you to the test.</p>
+        </div>
+        <a class="btn" href={game.testMail}>Email us to join</a>
       </div>
     </section>
   )}
