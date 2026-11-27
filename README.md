@@ -15,7 +15,7 @@ src/styles/site.css            all styles (colours and type at the top)
 src/components/AdSlot.astro    ad space, off until you switch ads on
 public/img/                    artwork rendered from the game (see "Artwork")
 scripts/render-art.mjs         re-renders public/img from the game's own drawing code
-Dockerfile, docker-compose.yml Node 26 LTS container on 127.0.0.1:3000
+Dockerfile, docker-compose.yml Node 26 LTS container on port 3000
 deploy/update.sh               pull, rebuild and restart on the server
 ```
 
@@ -83,8 +83,9 @@ add `public/ads.txt` with the line AdSense gives you, then run `./deploy/update.
 
 ## Server (Oracle, Docker)
 
-Runs on Node 26 (Active LTS) as a non-root user with a read-only filesystem, reachable only from
-the server itself on `127.0.0.1:3000`.
+Runs on Node 26 (Active LTS) as a non-root user with a read-only filesystem, on port 3000 of the
+server (`"3000:3000"` in `docker-compose.yml`, so an nginx that runs in Docker can reach it too).
+nginx is the only public entrance: port 3000 doesn't need an ingress rule in Oracle Cloud.
 
 ```bash
 git clone https://github.com/ArjumanSreashtho/playflex.net.git ~/playflex.net
@@ -99,7 +100,7 @@ nginx forwards the domain to it:
 server {
     server_name frostspear.playflex.net;
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3000;   # nginx in Docker: http://172.17.0.1:3000 (the host)
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

@@ -9,7 +9,7 @@ services:
     container_name: playflex-site
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3000:3000"   # only nginx on this machine can reach it, not the internet
+      - "3000:3000"   # nginx forwards frostspear.playflex.net here; port 3000 needs no opening to the internet
     init: true
     read_only: true
     tmpfs:
