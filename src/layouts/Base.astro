@@ -47,6 +47,9 @@ const year = new Date().getFullYear();
   )}
 </head>
 <body>
+  {/* Cloudflare would rewrite the email address to "[email protected]" in the page source;
+      email_off keeps it readable for everyone, including anything that reads pages without JavaScript. */}
+  <Fragment set:html="<!--email_off-->" />
   <a class="skip" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="container bar">
@@ -91,5 +94,6 @@ const year = new Date().getFullYear();
       <p>© {year} {game.studio}</p>
     </div>
   </footer>
+  <Fragment set:html="<!--/email_off-->" />
 </body>
 </html>
