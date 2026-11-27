@@ -1,0 +1,28 @@
+# PlayFlex website on port 3000 (nginx on the server forwards playflex.net to it).
+# Start / update:  docker compose up -d --build
+services:
+  web:
+    build:
+      context: .
+      pull: true            # always use the newest patched Node 26 image
+    image: playflex-site:latest
+    container_name: playflex-site
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"   # only nginx on this machine can reach it, not the internet
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

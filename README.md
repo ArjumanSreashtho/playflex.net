@@ -51,8 +51,8 @@ When a game is live, set its `playUrl` in `src/games.ts` to show a "Get it on Go
 
 ## Ads (later)
 
-Ads are off. To switch on Google AdSense once your account is approved, create a `.env` file on the
-server before building:
+Ads are off. To switch on Google AdSense once your account is approved, create a `.env` file in the
+repo folder on the server, then run `./deploy/update.sh`:
 
 ```
 PUBLIC_ADSENSE_CLIENT=ca-pub-XXXXXXXXXXXXXXXX
@@ -64,23 +64,24 @@ and add `public/ads.txt` with the line AdSense gives you. Ads show on the home p
 only; privacy pages and the 404 page never load the ad script. FrostSpear is made for kids, so keep
 ads off its game pages and use AdSense's family-safe settings.
 
-## First-time setup on the Oracle server
+## First-time setup on the Oracle server (Docker)
+
+Runs in Docker on Node 26 (Active LTS), as a non-root user with a read-only filesystem, reachable
+only from the server itself on `127.0.0.1:3000`.
 
 ```bash
-# Node 22 (skip if `node -v` already shows v22 or newer)
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# Docker (skip if `docker compose version` already works)
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER      # then log out and back in
 
 git clone https://github.com/ArjumanSreashtho/playflex.net.git ~/playflex.net
 cd ~/playflex.net
-npm ci && npm run build
-
-# keep it running (edit User/WorkingDirectory in the file first if you're not "ubuntu")
-sudo cp deploy/playflex-site.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now playflex-site
-curl -I http://127.0.0.1:3000/      # should say 200 OK
+chmod +x deploy/update.sh
+docker compose up -d --build
+curl -I http://127.0.0.1:3000/     # should say 200 OK
 ```
+
+(Without Docker you can use `deploy/playflex-site.service` with systemd and Node 26 instead.)
 
 nginx should forward the domain to it, for example:
 
@@ -104,4 +105,7 @@ HTTPS: `sudo certbot --nginx -d playflex.net -d www.playflex.net`.
 cd ~/playflex.net && ./deploy/update.sh
 ```
 
-Logs: `journalctl -u playflex-site -f`
+Logs: `docker compose logs -f web`
+
+Security patches: `./deploy/update.sh` always rebuilds on the newest Node 26 image, so run it
+every few weeks even when the site has not changed.
